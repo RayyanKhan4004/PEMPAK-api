@@ -41,7 +41,7 @@ if (process.env.NODE_ENV !== 'production') {
   }
   void startServer();
 }
-app.post("/ping", (req: Request, res: Response) => {
+app.get("/ping", (req: Request, res: Response) => {
   res.json({ msg: "pong", body: req.body });
 });
 
