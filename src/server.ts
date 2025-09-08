@@ -41,13 +41,12 @@ if (process.env.NODE_ENV !== 'production') {
   }
   void startServer();
 }
-app.get("/ping", (req: Request, res: Response) => {
-  res.json({ msg: "pong", body: req.body });
+
+app.get("/debug", (req, res) => {
+  res.json({ status: "ok", env: process.env.NODE_ENV });
 });
+
 
 
 // Export the Express app for Vercel
 export default app;
-
-
-
