@@ -26,21 +26,21 @@ app.get('/', (_req: Request, res: Response) => {
 // Centralized error handler
 app.use(errorHandler);
 
-if (process.env.NODE_ENV !== 'production') {
-  async function startServer(): Promise<void> {
-    try {
-      await connectToDatabase();
-      app.listen(port, '0.0.0.0', () => {
-        console.log(`Server listening on http://0.0.0.0:${port}`);
-        console.log('MongoDB connected successfully');
-      });
-    } catch (error) {
-      console.error('Failed to start server:', error);
-      process.exit(1);
-    }
-  }
-  void startServer();
-}
+// if (process.env.NODE_ENV !== 'production') {
+//   async function startServer(): Promise<void> {
+//     try {
+//       await connectToDatabase();
+//       app.listen(port, '0.0.0.0', () => {
+//         console.log(`Server listening on http://0.0.0.0:${port}`);
+//         console.log('MongoDB connected successfully');
+//       });
+//     } catch (error) {
+//       console.error('Failed to start server:', error);
+//       process.exit(1);
+//     }
+//   }
+//   void startServer();
+// }
 
 app.get("/debug", (req, res) => {
   res.json({ status: "ok", env: process.env.NODE_ENV });
