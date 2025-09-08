@@ -1,3 +1,3 @@
 // This is the entry for Vercel
-const app = require("../server");
+const app = require("../src/server");
 module.exports = app;
