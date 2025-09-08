@@ -7,13 +7,15 @@ import { connectToDatabase } from './db/connect';
 import teamRoutes from './routes/teamRoutes';
 
 const app = express();
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+// const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/teams', teamRoutes);
+
+
 
 app.get('/health', (_req: Request, res: Response) => {
   return res.status(200).json({ status: 'ok' });
@@ -41,11 +43,6 @@ app.use(errorHandler);
 //   }
 //   void startServer();
 // }
-
-app.get("/debug", (req, res) => {
-  res.json({ status: "ok", env: process.env.NODE_ENV });
-});
-
 
 
 // Export the Express app for Vercel
