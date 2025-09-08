@@ -23,25 +23,29 @@ app.get('/', (_req: Request, res: Response) => {
 	return res.send('Express server is running (TypeScript)');
 });
 
-async function startServer(): Promise<void> {
-	try {
-		await connectToDatabase();
-		app.listen(port, () => {
-			// eslint-disable-next-line no-console
-			console.log(`Server listening on http://localhost:${port}`);
-			// eslint-disable-next-line no-console
-			console.log('MongoDB connected successfully');
-		});
-	} catch (error) {
-		// eslint-disable-next-line no-console
-		console.error('Failed to start server:', error);
-		process.exit(1);
-	}
-}
-
-void startServer();
-
 // Centralized error handler
 app.use(errorHandler);
+
+if (process.env.NODE_ENV !== 'production') {
+	async function startServer(): Promise<void> {
+		try {
+			await connectToDatabase();
+			app.listen(port, '0.0.0.0', () => {
+				// eslint-disable-next-line no-console
+				console.log(`Server listening on http://0.0.0.0:${port}`);
+				// eslint-disable-next-line no-console
+				console.log('MongoDB connected successfully');
+			});
+		} catch (error) {
+			// eslint-disable-next-line no-console
+			console.error('Failed to start server:', error);
+			process.exit(1);
+		}
+	}
+	void startServer();
+}
+
+// Export the Express app for Vercel
+export default app;
 
 
