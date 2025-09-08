@@ -1,7 +1,7 @@
 import path from 'path';
 import dotenv from 'dotenv';
 
-const envFilePath = path.resolve(__dirname, '..', '.env');
+const envFilePath = path.resolve(process.cwd(), '.env',);
 dotenv.config({ path: envFilePath });
 
 const mongoDbUrl =
