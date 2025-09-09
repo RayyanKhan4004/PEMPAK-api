@@ -34,13 +34,33 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
 	}
 }
 
-export async function getProducts(_req: Request, res: Response, next: NextFunction): Promise<void> {
-	try {
-		const docs = await Product.find().sort({ createdAt: -1 });
-		return void res.status(200).json(docs.map(toResponse));
-	} catch (error) {
-		return void next(error);
-	}
+export async function getProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+        const page = Math.max(1, parseInt(req.query.page as string) || 1);
+        const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+        const skip = (page - 1) * limit;
+
+        const [docs, total] = await Promise.all([
+            Product.find()
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Product.countDocuments()
+        ]);
+
+        return void res.status(200).json({
+            data: docs.map(toResponse),
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        return void next(error);
+    }
 }
 
 export async function getProductById(req: Request, res: Response, next: NextFunction): Promise<void> {

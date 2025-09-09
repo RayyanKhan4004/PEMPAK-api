@@ -1,3 +1,3 @@
-const serverless = require("serverless-http");
-const app = require("../dist/server").default || require("../dist/server");
-module.exports = serverless(app);
+const serverModule = require("../dist/server");
+const app = serverModule && serverModule.default ? serverModule.default : serverModule;
+module.exports = app;

@@ -7,6 +7,7 @@ dotenv.config({ path: envFilePath });
 const mongoDbUrl =
 	process.env.MONGODB_URI ||
 	process.env.MONGODB_URL ||
+	process.env.MONGO_URI ||
 	process.env.MANGODB_URL ||
 	'';
 
