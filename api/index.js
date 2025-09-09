@@ -1,5 +1,3 @@
-// const serverless = require("serverless-http");
-const app = require("../dist/server").default;
-
-// wrap your Express app so Vercel can run it as a serverless function
+const serverless = require("serverless-http");
+const app = require("../dist/server").default || require("../dist/server");
 module.exports = serverless(app);
