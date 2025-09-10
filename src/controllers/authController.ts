@@ -4,6 +4,8 @@ import { User } from '../models/User';
 import { verifyPassword, hashPassword } from '../utils/password';
 import { appConfig } from '../config/env';
 
+
+// * Login an existing user
 export async function login(req: Request, res: Response): Promise<Response> {
 	try {
 		const { email, password } = req.body as { email?: string; password?: string };
@@ -32,6 +34,8 @@ export async function login(req: Request, res: Response): Promise<Response> {
 	}
 }
 
+
+// * Register a new user
 export async function register(req: Request, res: Response): Promise<Response> {
 	try {
 		const { name, email, password } = req.body as { name?: string; email?: string; password?: string };

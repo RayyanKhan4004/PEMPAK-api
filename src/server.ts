@@ -16,32 +16,38 @@ app.use('/api/blogs', blogRoutes);
 app.use('/api/teams', teamRoutes);
 
 app.get('/health', (_req: Request, res: Response) => {
-	return res.status(200).json({ status: 'ok' });
+  return res.status(200).json({ status: 'ok' });
 });
 
 app.get('/', (_req: Request, res: Response) => {
-	return res.send('Express server is running (TypeScript)');
+  return res.send('Express server is running (TypeScript)');
 });
-
-async function startServer(): Promise<void> {
-	try {
-		await connectToDatabase();
-		app.listen(port, () => {
-			// eslint-disable-next-line no-console
-			console.log(`Server listening on http://localhost:${port}`);
-			// eslint-disable-next-line no-console
-			console.log('MongoDB connected successfully');
-		});
-	} catch (error) {
-		// eslint-disable-next-line no-console
-		console.error('Failed to start server:', error);
-		process.exit(1);
-	}
-}
-
-void startServer();
 
 // Centralized error handler
 app.use(errorHandler);
+
+if (process.env.NODE_ENV !== 'production') {
+  async function startServer(): Promise<void> {
+    try {
+      await connectToDatabase();
+      app.listen(port, '0.0.0.0', () => {
+        console.log(`Server listening on http://0.0.0.0:${port}`);
+        console.log('MongoDB connected successfully');
+      });
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    }
+  }
+  void startServer();
+}
+app.post("/ping", (req: Request, res: Response) => {
+  res.json({ msg: "pong", body: req.body });
+});
+
+
+// Export the Express app for Vercel
+export default app;
+
 
 
