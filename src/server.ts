@@ -5,8 +5,21 @@ import { errorHandler } from './middleware/errorHandler';
 import blogRoutes from './routes/blogRoutes';
 import { connectToDatabase } from './db/connect';
 import teamRoutes from './routes/teamRoutes';
+import cors from 'cors';
 
 const app = express();
+
+// Configure CORS
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://pempak-api.vercel.app/'] // Replace with your actual production domain
+    : '*', // Allow all origins in development
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
+}));
+
 connectToDatabase()
   .then(() => console.log('Mongo connected (module load)'))
   .catch((err) => console.error('Mongo connect error (module load):', err));
