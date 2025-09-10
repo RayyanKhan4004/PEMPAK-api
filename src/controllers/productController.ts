@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { Product } from '../models/Product';
 
-function ensureImagesArrayAtLeast11(images: unknown): asserts images is string[] {
-	if (!Array.isArray(images) || images.length < 11) {
-		throw new Error('images must be an array with at least 11 items');
+function ensureImagesArrayAtLeast1(images: unknown): asserts images is string[] {
+	if (!Array.isArray(images) || images.length < 1) {
+		throw new Error('images must be an array with at least 1 items');
 	}
 	if (!images.every((u) => typeof u === 'string')) {
 		throw new Error('images array must contain only strings');
@@ -26,7 +26,7 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
 		if (!heading || !type || !description) {
 			return void res.status(400).json({ message: 'heading, type, and description are required' });
 		}
-		ensureImagesArrayAtLeast11(images);
+		ensureImagesArrayAtLeast1(images);
 		const doc = await Product.create({ heading, type, description, images: JSON.stringify(images) });
 		return void res.status(201).json(toResponse(doc));
 	} catch (error) {
@@ -84,7 +84,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
 		if (type !== undefined) update.type = type;
 		if (description !== undefined) update.description = description;
 		if (images !== undefined) {
-			ensureImagesArrayAtLeast11(images);
+			ensureImagesArrayAtLeast1(images);
 			update.images = JSON.stringify(images);
 		}
 
