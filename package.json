@@ -5,6 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
+    "vercel-build": "tsc",
     "start": "node dist/server.js"
   },
   "keywords": [],
