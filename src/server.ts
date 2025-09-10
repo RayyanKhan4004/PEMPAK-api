@@ -12,7 +12,7 @@ const app = express();
 // Configure CORS
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://pempak-api.vercel.app/'] // Replace with your actual production domain
+    ? '*' // Replace with your actual production domain
     : '*', // Allow all origins in development
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
