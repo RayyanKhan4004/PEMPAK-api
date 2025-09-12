@@ -1,23 +1,32 @@
 import { Request, Response, NextFunction } from 'express';
 import { Product } from '../models/Product';
 
-function ensureImagesArrayAtLeast1(images: unknown): asserts images is string[] {
-	if (!Array.isArray(images) || images.length < 1) {
-		throw new Error('images must be an array with at least 1 items');
-	}
-	if (!images.every((u) => typeof u === 'string')) {
-		throw new Error('images array must contain only strings');
-	}
+function validateBase64Images(images: unknown): asserts images is string[] {
+    if (!Array.isArray(images) || images.length < 1) {
+        throw new Error('images must be an array with at least 1 item');
+    }
+    if (!images.every((img) => typeof img === 'string' && isBase64Image(img))) {
+        throw new Error('All images must be valid base64 encoded strings');
+    }
+}
+
+function isBase64Image(str: string): boolean {
+    // Check if string is a valid base64 image format
+    const base64Regex = /^data:image\/(png|jpeg|jpg|gif);base64,/;
+    if (!base64Regex.test(str)) {
+        return false;
+    }
+    try {
+        // Check if the rest is valid base64
+        const base64Data = str.split(',')[1];
+        return btoa(atob(base64Data)) === base64Data;
+    } catch (e) {
+        return false;
+    }
 }
 
 function toResponse(product: any) {
-	const obj = product.toObject ? product.toObject() : product;
-	return {
-		...obj,
-		images: (() => {
-			try { return JSON.parse(obj.images || '[]'); } catch { return []; }
-		})(),
-	};
+    return product.toObject ? product.toObject() : product;
 }
 
 export async function createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -26,8 +35,8 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
 		if (!heading || !type || !description) {
 			return void res.status(400).json({ message: 'heading, type, and description are required' });
 		}
-		ensureImagesArrayAtLeast1(images);
-		const doc = await Product.create({ heading, type, description, images: JSON.stringify(images) });
+		validateBase64Images(images);
+		const doc = await Product.create({ heading, type, description, images });
 		return void res.status(201).json(toResponse(doc));
 	} catch (error) {
 		return void next(error);
@@ -84,8 +93,8 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
 		if (type !== undefined) update.type = type;
 		if (description !== undefined) update.description = description;
 		if (images !== undefined) {
-			ensureImagesArrayAtLeast1(images);
-			update.images = JSON.stringify(images);
+			validateBase64Images(images);
+			update.images = images;
 		}
 
 		const doc = await Product.findByIdAndUpdate(id, update, { new: true });

@@ -4,14 +4,14 @@ export interface ProductDocument extends Document {
 	heading: string;
 	type: string;
 	description: string;
-	images: string; // JSON.stringify of string[] URLs
+	images: string[]; // Array of base64 encoded image strings
 }
 
 const ProductSchema = new Schema<ProductDocument>({
 	heading: { type: String, required: true, trim: true },
 	type: { type: String, required: true, trim: true },
 	description: { type: String, required: true, trim: true },
-	images: { type: String, required: true },
+	images: [{ type: String, required: true }], // Store base64 strings directly as array
 },{
 	timestamps: true,
 });
