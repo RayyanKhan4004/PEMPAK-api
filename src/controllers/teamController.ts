@@ -2,36 +2,43 @@ import { Request, Response, NextFunction } from 'express';
 import { Team } from '../models/Team';
 
 function isBase64Image(str: string): boolean {
-    const base64Regex = /^data:image\/(png|jpeg|jpg|gif);base64,/;
-    if (!base64Regex.test(str)) {
-        return false;
-    }
-    try {
-        const base64Data = str.split(',')[1];
-        return btoa(atob(base64Data)) === base64Data;
-    } catch (e) {
-        return false;
-    }
+	const base64Regex = /^data:image\/(png|jpeg|jpg|gif);base64,/;
+	if (!base64Regex.test(str)) {
+		return false;
+	}
+	try {
+		const base64Data = str.split(',')[1];
+		return btoa(atob(base64Data)) === base64Data;
+	} catch (e) {
+		return false;
+	}
 }
 
 function validateBase64Image(image: unknown): asserts image is string {
-    if (typeof image !== 'string') {
-        throw new Error('Image must be a base64 string');
-    }
-    if (!isBase64Image(image)) {
-        throw new Error('Invalid base64 image format');
-    }
+	if (typeof image !== 'string') {
+		throw new Error('Image must be a base64 string');
+	}
+	if (!isBase64Image(image)) {
+		throw new Error('Invalid base64 image format');
+	}
 }
 
 export async function createTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
+
+	const { pf, name, role, image } = req.body as { pf?: string; name?: string; role?: string; image?: string };
+	if (!pf || !name || !role) {
+		return void res.status(400).json({ message: 'pf, name and role are required' });
+	}
+	
 	try {
+
 		// Check if req.body exists
 		if (!req.body) {
-			return void res.status(400).json({ 
+			return void res.status(400).json({
 				message: 'Request body is missing',
-				debug: { 
+				debug: {
 					contentType: req.headers['content-type'],
-					bodyType: typeof req.body 
+					bodyType: typeof req.body
 				}
 			});
 		}
@@ -40,15 +47,15 @@ export async function createTeam(req: Request, res: Response, next: NextFunction
 		console.log('Incoming request body:', req.body);
 
 		const { pf, name, role, image } = req.body as { pf?: string; name?: string; role?: string, image?: string };
-		
+
 		// Validate required fields individually
 		const missingFields = [];
 		if (!pf) missingFields.push('pf');
 		if (!name) missingFields.push('name');
 		if (!role) missingFields.push('role');
-		
+
 		if (missingFields.length > 0) {
-			return void res.status(400).json({ 
+			return void res.status(400).json({
 				message: `Missing required fields: ${missingFields.join(', ')}`,
 				required: ['pf', 'name', 'role'],
 				received: req.body
@@ -121,5 +128,3 @@ export async function deleteTeam(req: Request, res: Response, next: NextFunction
 		return void next(error);
 	}
 }
-
-
