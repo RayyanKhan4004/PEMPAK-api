@@ -25,6 +25,7 @@ function validateBase64Image(image: unknown): asserts image is string {
 
 export async function createTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
 	try {
+<<<<<<< HEAD
 		// Check if req.body exists
 		if (!req.body) {
 			return void res.status(400).json({ 
@@ -59,6 +60,12 @@ export async function createTeam(req: Request, res: Response, next: NextFunction
 			validateBase64Image(image);
 		}
 
+=======
+		const { pf, name, role, image } = req.body as { pf?: string; name?: string; role?: string; image?: string };
+		if (!pf || !name || !role) {
+			return void res.status(400).json({ message: 'pf, name and role are required' });
+		}
+>>>>>>> 4a356683359720fb9fe5af09399f689bdab775bd
 		const doc = await Team.create({ pf, name, role, image });
 		return void res.status(201).json(doc);
 	} catch (error) {
@@ -96,12 +103,16 @@ export async function updateTeam(req: Request, res: Response, next: NextFunction
 		if (pf !== undefined) update.pf = pf;
 		if (name !== undefined) update.name = name;
 		if (role !== undefined) update.role = role;
+<<<<<<< HEAD
 		if (image !== undefined) {
 			if (image) {
 				validateBase64Image(image);
 			}
 			update.image = image;
 		}
+=======
+		if (image !== undefined) update.image = image;
+>>>>>>> 4a356683359720fb9fe5af09399f689bdab775bd
 
 		const doc = await Team.findByIdAndUpdate(id, update, { new: true });
 		if (!doc) return void res.status(404).json({ message: 'Team member not found' });
