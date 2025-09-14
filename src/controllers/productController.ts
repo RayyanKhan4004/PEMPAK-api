@@ -1,27 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 import { Product } from '../models/Product';
 
-function validateBase64Images(images: unknown): asserts images is string[] {
+interface CloudinaryImage {
+    url: string;
+    public_id: string;
+}
+
+function validateCloudinaryImages(images: unknown): asserts images is CloudinaryImage[] {
     if (!Array.isArray(images) || images.length < 1) {
         throw new Error('images must be an array with at least 1 item');
     }
-    if (!images.every((img) => typeof img === 'string' && isBase64Image(img))) {
-        throw new Error('All images must be valid base64 encoded strings');
-    }
-}
-
-function isBase64Image(str: string): boolean {
-    // Check if string is a valid base64 image format
-    const base64Regex = /^data:image\/(png|jpeg|jpg|gif);base64,/;
-    if (!base64Regex.test(str)) {
-        return false;
-    }
-    try {
-        // Check if the rest is valid base64
-        const base64Data = str.split(',')[1];
-        return btoa(atob(base64Data)) === base64Data;
-    } catch (e) {
-        return false;
+    if (!images.every((img) => 
+        typeof img === 'object' && 
+        img !== null &&
+        typeof (img as CloudinaryImage).url === 'string' &&
+        typeof (img as CloudinaryImage).public_id === 'string'
+    )) {
+        throw new Error('All images must have valid url and public_id properties');
     }
 }
 
@@ -35,7 +30,7 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
 		if (!heading || !type || !description) {
 			return void res.status(400).json({ message: 'heading, type, and description are required' });
 		}
-		validateBase64Images(images);
+		validateCloudinaryImages(images);
 		const doc = await Product.create({ heading, type, description, images });
 		return void res.status(201).json(toResponse(doc));
 	} catch (error) {
@@ -93,7 +88,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
 		if (type !== undefined) update.type = type;
 		if (description !== undefined) update.description = description;
 		if (images !== undefined) {
-			validateBase64Images(images);
+			validateCloudinaryImages(images);
 			update.images = images;
 		}
 

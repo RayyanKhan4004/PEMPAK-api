@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+import { uploadImage as uploadToCloudinary } from '../utils/imageUpload';
 
 // Add this to make Express.Multer.File available
 declare global {
@@ -23,33 +21,23 @@ declare global {
   }
 }
 
-// Configure storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Use a path that works in both development and production
-    const uploadDir = process.env.NODE_ENV === 'production'
-      ? path.join(process.cwd(), 'uploads') // For production
-      : path.join(__dirname, '../../uploads'); // For development
-    
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Generate unique filename
-    const uniqueFilename = `${uuidv4()}${path.extname(file.originalname)}`;
-    cb(null, uniqueFilename);
-  }
-});
+// Configure storage to use memory storage for temporary file handling
+const storage = multer.memoryStorage();
 
 // File filter
 const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  // Accept images only
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
-    return cb(new Error('Only image files are allowed!'));
+  // Check file extension
+  const allowedExtensions = /\.(jpg|jpeg|png|gif|webp)$/i;
+  if (!file.originalname.match(allowedExtensions)) {
+    return cb(new Error('Only image files (JPG, JPEG, PNG, GIF, WebP) are allowed!'));
   }
+  
+  // Check MIME type
+  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (!allowedMimeTypes.includes(file.mimetype)) {
+    return cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed!'));
+  }
+  
   cb(null, true);
 };
 
@@ -66,39 +54,58 @@ const upload = multer({
 export const uploadMiddleware = upload.single('image');
 
 // Upload handler
-export const uploadImage = (req: Request, res: Response) => {
+export const uploadImage = async (req: Request, res: Response) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file uploaded' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No file uploaded. Please select an image file.' 
+      });
     }
 
-    // Get the file path
-    const file = req.file;
-    
-    // Determine the base URL for the file
-    let baseUrl: string;
-    if (process.env.NODE_ENV === 'production') {
-      // For production, use the API_URL environment variable or default to the Vercel URL
-      baseUrl = process.env.API_URL || 
-               (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://pempak-api.vercel.app');
-    } else {
-      // For development, use the host from the request
-      baseUrl = `http://${req.headers.host}`;
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (req.file.size > maxSize) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'File size exceeds 5MB limit' 
+      });
     }
 
-    // Return the file URL
-    const imageUrl = `${baseUrl}/uploads/${file.filename}`;
+    // Additional validation - check if buffer exists
+    if (!req.file.buffer || req.file.buffer.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid file data' 
+      });
+    }
+
+    // Upload to Cloudinary
+    const uploadResult = await uploadToCloudinary(req.file.buffer);
     
     return res.status(200).json({
       success: true,
-      imageUrl,
+      imageUrl: uploadResult.url,
+      public_id: uploadResult.public_id,
+      originalName: req.file.originalname,
+      size: req.file.size,
       message: 'File uploaded successfully'
     });
   } catch (error) {
     console.error('Upload error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error uploading file';
+    
+    // Handle specific Cloudinary errors
+    if (errorMessage.includes('Cloudinary')) {
+      return res.status(500).json({
+        success: false,
+        message: 'Image upload service error. Please try again.'
+      });
+    }
+    
     return res.status(500).json({
       success: false,
-      message: 'Error uploading file'
+      message: errorMessage
     });
   }
 };
