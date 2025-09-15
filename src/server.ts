@@ -29,7 +29,7 @@ app.use(cors({
 connectToDatabase()
   .then(() => console.log('Mongo connected (module load)'))
   .catch((err) => console.error('Mongo connect error (module load):', err));
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+const port = process.env.PORT ? Number(process.env.PORT) : 6060;
 
 // Start the server in development mode
 // Server is now started at the top of the file for development mode
@@ -85,6 +85,11 @@ app.get('/api/debug', (_req, res) => {
     jwtPresent: !!process.env.JWT_SECRET
   });
 });
+
+// Start server locally (do not listen in production for serverless platforms like Vercel)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port);
+}
 
 // Export the Express app for Vercel
 export default app;
