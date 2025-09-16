@@ -1,11 +1,17 @@
 import express, { Request, Response } from 'express';
+import path from 'path';
+import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import productRoutes from './routes/productRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import blogRoutes from './routes/blogRoutes';
 import { connectToDatabase } from './db/connect';
 import teamRoutes from './routes/teamRoutes';
+import uploadRoutes from './routes/uploadRoutes';
 import cors from 'cors';
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 
@@ -23,7 +29,10 @@ app.use(cors({
 connectToDatabase()
   .then(() => console.log('Mongo connected (module load)'))
   .catch((err) => console.error('Mongo connect error (module load):', err));
-// const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+// const port = process.env.PORT ? Number(process.env.PORT) : 3410;
+
+// Start the server in development mode
+// Server is now started at the top of the file for development mode
 
 // Add timeout middleware
 app.use((req, res, next) => {
@@ -42,10 +51,16 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: '1mb' }));
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/teams', teamRoutes);
+console.log('Registering upload route...');
+app.use('/api/upload', uploadRoutes);
 
 
 
@@ -60,21 +75,7 @@ app.get('/', (_req: Request, res: Response) => {
 // Centralized error handler
 app.use(errorHandler);
 
-// if (process.env.NODE_ENV !== 'production') {
-//   async function startServer(): Promise<void> {
-//     try {
-//       await connectToDatabase();
-//       app.listen(port, '0.0.0.0', () => {
-//         console.log(`Server listening on http://0.0.0.0:${port}`);
-//         console.log('MongoDB connected successfully');
-//       });
-//     } catch (error) {
-//       console.error('Failed to start server:', error);
-//       process.exit(1);
-//     }
-//   }
-//   void startServer();
-// }
+// Server is now started at the top of the file for development mode
 
 app.get('/api/debug', (_req, res) => {
   res.json({
@@ -84,6 +85,6 @@ app.get('/api/debug', (_req, res) => {
     jwtPresent: !!process.env.JWT_SECRET
   });
 });
-
+// app.listen(port);
 // Export the Express app for Vercel
 export default app;

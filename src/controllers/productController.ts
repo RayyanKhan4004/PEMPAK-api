@@ -1,23 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
 import { Product } from '../models/Product';
 
-function ensureImagesArrayAtLeast11(images: unknown): asserts images is string[] {
-	if (!Array.isArray(images) || images.length < 11) {
-		throw new Error('images must be an array with at least 11 items');
-	}
-	if (!images.every((u) => typeof u === 'string')) {
-		throw new Error('images array must contain only strings');
-	}
+interface CloudinaryImage {
+    url: string;
+    public_id: string;
+}
+
+function validateCloudinaryImages(images: unknown): asserts images is CloudinaryImage[] {
+    if (!Array.isArray(images) || images.length < 1) {
+        throw new Error('images must be an array with at least 1 item');
+    }
+    if (!images.every((img) => 
+        typeof img === 'object' && 
+        img !== null &&
+        typeof (img as CloudinaryImage).url === 'string' &&
+        typeof (img as CloudinaryImage).public_id === 'string'
+    )) {
+        throw new Error('All images must have valid url and public_id properties');
+    }
 }
 
 function toResponse(product: any) {
-	const obj = product.toObject ? product.toObject() : product;
-	return {
-		...obj,
-		images: (() => {
-			try { return JSON.parse(obj.images || '[]'); } catch { return []; }
-		})(),
-	};
+    return product.toObject ? product.toObject() : product;
 }
 
 export async function createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -26,8 +30,8 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
 		if (!heading || !type || !description) {
 			return void res.status(400).json({ message: 'heading, type, and description are required' });
 		}
-		ensureImagesArrayAtLeast11(images);
-		const doc = await Product.create({ heading, type, description, images: JSON.stringify(images) });
+		validateCloudinaryImages(images);
+		const doc = await Product.create({ heading, type, description, images });
 		return void res.status(201).json(toResponse(doc));
 	} catch (error) {
 		return void next(error);
@@ -84,8 +88,8 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
 		if (type !== undefined) update.type = type;
 		if (description !== undefined) update.description = description;
 		if (images !== undefined) {
-			ensureImagesArrayAtLeast11(images);
-			update.images = JSON.stringify(images);
+			validateCloudinaryImages(images);
+			update.images = images;
 		}
 
 		const doc = await Product.findByIdAndUpdate(id, update, { new: true });
