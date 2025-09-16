@@ -8,6 +8,7 @@ import blogRoutes from './routes/blogRoutes';
 import { connectToDatabase } from './db/connect';
 import teamRoutes from './routes/teamRoutes';
 import uploadRoutes from './routes/uploadRoutes';
+import categoryRoutes from './routes/categoryRoutes';
 import cors from 'cors';
 
 // Load environment variables
@@ -59,6 +60,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/teams', teamRoutes);
+app.use('/api/categories', categoryRoutes);
 console.log('Registering upload route...');
 app.use('/api/upload', uploadRoutes);
 
