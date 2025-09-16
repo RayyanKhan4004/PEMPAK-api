@@ -1,23 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import { Product } from '../models/Product';
 
-interface CloudinaryImage {
-    url: string;
-    public_id: string;
-}
-
-function validateCloudinaryImages(images: unknown): asserts images is CloudinaryImage[] {
-    if (!Array.isArray(images) || images.length < 1) {
-        throw new Error('images must be an array with at least 1 item');
+function normalizeImagesArray(input: unknown): string[] | undefined {
+    if (input === undefined || input === null) return undefined;
+    if (Array.isArray(input)) {
+        return input
+            .map((v) => (typeof v === 'string' ? v.trim() : ''))
+            .filter((v) => v.length > 0);
     }
-    if (!images.every((img) => 
-        typeof img === 'object' && 
-        img !== null &&
-        typeof (img as CloudinaryImage).url === 'string' &&
-        typeof (img as CloudinaryImage).public_id === 'string'
-    )) {
-        throw new Error('All images must have valid url and public_id properties');
+    if (typeof input === 'string') {
+        const v = input.trim();
+        return v ? [v] : [];
     }
+    return undefined;
 }
 
 function toResponse(product: any) {
@@ -30,8 +25,8 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
 		if (!heading || !type || !description) {
 			return void res.status(400).json({ message: 'heading, type, and description are required' });
 		}
-		validateCloudinaryImages(images);
-		const doc = await Product.create({ heading, type, description, images });
+		const normalizedImages = normalizeImagesArray(images) ?? [];
+		const doc = await Product.create({ heading, type, description, images: normalizedImages });
 		return void res.status(201).json(toResponse(doc));
 	} catch (error) {
 		return void next(error);
@@ -88,8 +83,8 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
 		if (type !== undefined) update.type = type;
 		if (description !== undefined) update.description = description;
 		if (images !== undefined) {
-			validateCloudinaryImages(images);
-			update.images = images;
+			const normalized = normalizeImagesArray(images) ?? [];
+			update.images = normalized;
 		}
 
 		const doc = await Product.findByIdAndUpdate(id, update, { new: true });

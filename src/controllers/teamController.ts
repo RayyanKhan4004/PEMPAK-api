@@ -1,31 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import { Team } from '../models/Team';
 
-function isBase64Image(str: string): boolean {
-	const base64Regex = /^data:image\/(png|jpeg|jpg|gif);base64,/;
-	if (!base64Regex.test(str)) {
-		return false;
-	}
-	try {
-		const base64Data = str.split(',')[1];
-		return btoa(atob(base64Data)) === base64Data;
-	} catch (e) {
-		return false;
-	}
+function normalizeImageInput(input: unknown): string | undefined {
+    if (typeof input === 'string') {
+        const v = input.trim();
+        return v.length > 0 ? v : undefined;
+    }
+    return undefined;
 }
 
-function validateBase64Image(image: unknown): asserts image is string {
-	if (typeof image !== 'string') {
-		throw new Error('Image must be a base64 string');
-	}
-	if (!isBase64Image(image)) {
-		throw new Error('Invalid base64 image format');
-	}
-}
 
 export async function createTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
 
-	const { pf, name, role, image } = req.body as { pf?: string; name?: string; role?: string; image?: string };
+	const { pf, name, role, image } = req.body as { pf?: string; name?: string; role?: string; image?: unknown };
 	if (!pf || !name || !role) {
 		return void res.status(400).json({ message: 'pf, name and role are required' });
 	}
@@ -46,7 +33,7 @@ export async function createTeam(req: Request, res: Response, next: NextFunction
 		// Log the incoming request body for debugging
 		console.log('Incoming request body:', req.body);
 
-		const { pf, name, role, image } = req.body as { pf?: string; name?: string; role?: string, image?: string };
+		const { pf, name, role, image } = req.body as { pf?: string; name?: string; role?: string, image?: unknown };
 
 		// Validate required fields individually
 		const missingFields = [];
@@ -56,17 +43,15 @@ export async function createTeam(req: Request, res: Response, next: NextFunction
 
 		if (missingFields.length > 0) {
 			return void res.status(400).json({
-				message: `Missing required fields: ${missingFields.join(', ')}`,
+				message: `Missing required fields: ${missingFields.join(',')}`,
 				required: ['pf', 'name', 'role'],
 				received: req.body
 			});
 		}
 
-		if (image) {
-			validateBase64Image(image);
-		}
+		const normalizedImage = normalizeImageInput(image);
 
-		const doc = await Team.create({ pf, name, role, image });
+		const doc = await Team.create({ pf, name, role, image: normalizedImage });
 		return void res.status(201).json(doc);
 	} catch (error) {
 		console.error('Error in createTeam:', error);
@@ -97,17 +82,15 @@ export async function getTeamById(req: Request, res: Response, next: NextFunctio
 export async function updateTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
 	try {
 		const { id } = req.params;
-		const { pf, name, role, image } = req.body as { pf?: string; name?: string; role?: string; image?: string };
+		const { pf, name, role, image } = req.body as { pf?: string; name?: string; role?: string; image?: unknown };
 
 		const update: any = {};
 		if (pf !== undefined) update.pf = pf;
 		if (name !== undefined) update.name = name;
 		if (role !== undefined) update.role = role;
 		if (image !== undefined) {
-			if (image) {
-				validateBase64Image(image);
-			}
-			update.image = image;
+			const normalized = normalizeImageInput(image);
+			update.image = normalized;
 		}
 
 		const doc = await Team.findByIdAndUpdate(id, update, { new: true });

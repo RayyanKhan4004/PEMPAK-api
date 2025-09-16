@@ -5,7 +5,7 @@ import { Blog } from '../models/Blog';
 //     if (typeof image !== 'string') {
 //         throw new Error('Image must be a base64 string');
 //     }
-//     if (!isBase64Image(image)) {
+//     if (!isBase64Image(image)) {d
 //         throw new Error('Invalid base64 image format');
 //     }
 // }
@@ -117,5 +117,3 @@ export async function deleteBlog(req: Request, res: Response, next: NextFunction
 		return void next(error);
 	}
 }
-
-
