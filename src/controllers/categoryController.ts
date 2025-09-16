@@ -36,10 +36,10 @@ export async function createCategory(req: Request, res: Response, next: NextFunc
 		
 		const normalizedAdditionalImages = normalizeImagesArray(additionalImages) ?? [];
 		
-		// Validate that we have exactly 4 additional images
-		if (normalizedAdditionalImages.length !== 1) {
+		// Validate that we have between 1 and 4 additional images
+		if (normalizedAdditionalImages.length < 1 || normalizedAdditionalImages.length > 4) {
 			return void res.status(400).json({ 
-				message: 'minimum 1 or maximum 4 additional images are required' 
+				message: 'minimum 1 and maximum 4 additional images are required' 
 			});
 		}
 		
@@ -112,10 +112,10 @@ export async function updateCategory(req: Request, res: Response, next: NextFunc
 		if (bannerImage !== undefined) update.bannerImage = bannerImage;
 		if (additionalImages !== undefined) {
 			const normalized = normalizeImagesArray(additionalImages) ?? [];
-			// Validate that we have exactly 4 additional images
-			if (normalized.length !== 4) {
+			// Validate that we have between 1 and 4 additional images
+			if (normalized.length < 1 || normalized.length > 4) {
 				return void res.status(400).json({ 
-					message: 'exactly 4 additional images are required' 
+					message: 'minimum 1 and maximum 4 additional images are required' 
 				});
 			}
 			update.additionalImages = normalized;
