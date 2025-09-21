@@ -9,6 +9,7 @@ import { connectToDatabase } from './db/connect';
 import teamRoutes from './routes/teamRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import categoryRoutes from './routes/categoryRoutes';
+import subCategoryRoutes from './routes/subCategoryRoutes';
 import cors from 'cors';
 
 // Load environment variables
@@ -30,7 +31,7 @@ app.use(cors({
 connectToDatabase()
   .then(() => console.log('Mongo connected (module load)'))
   .catch((err) => console.error('Mongo connect error (module load):', err));
-// const port = process.env.PORT ? Number(process.env.PORT) : 3410;
+const port = process.env.PORT ? Number(process.env.PORT) : 3410;
 
 // Start the server in development mode
 // Server is now started at the top of the file for development mode
@@ -61,6 +62,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/subcategories', subCategoryRoutes);
 console.log('Registering upload route...');
 app.use('/api/upload', uploadRoutes);
 
@@ -88,6 +90,6 @@ app.get('/api/debug', (_req, res) => {
   });
 });
 
-// app.listen(port);
+app.listen(port);
 // Export the Express app for Vercel
 export default app;
