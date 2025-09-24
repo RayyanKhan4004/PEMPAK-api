@@ -113,9 +113,9 @@ export async function updateCategory(req: Request, res: Response, next: NextFunc
 		if (additionalImages !== undefined) {
 			const normalized = normalizeImagesArray(additionalImages) ?? [];
 			// Validate that we have between 1 and 4 additional images
-			if (normalized.length < 1 || normalized.length > 4) {
+			if (normalized.length < 4) {
 				return void res.status(400).json({ 
-					message: 'minimum 1 and maximum 4 additional images are required' 
+					message: 'At least 4 additional images are required' 
 				});
 			}
 			update.additionalImages = normalized;

@@ -9,6 +9,7 @@ import { connectToDatabase } from './db/connect';
 import teamRoutes from './routes/teamRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import categoryRoutes from './routes/categoryRoutes';
+import subCategoryRoutes from './routes/subCategoryRoutes';
 import cors from 'cors';
 
 // Load environment variables
@@ -61,6 +62,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/subcategories', subCategoryRoutes);
 console.log('Registering upload route...');
 app.use('/api/upload', uploadRoutes);
 
